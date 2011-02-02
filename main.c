@@ -1,6 +1,6 @@
 /* 
 	AVR Software-Uart Demo-Application 
-	Version 0.3, 4/2007
+	Version 0.4, 10/2010
 	
 	by Martin Thomas, Kaiserslautern, Germany
 	<eversmith@heizung-thomas.de>
@@ -9,15 +9,28 @@
 
 /* 
 Test environment/settings: 
-- avr-gcc 4.1.1/avr-libc 1.4.5 (WinAVR 1/2007)
-- Atmel ATtiny85 @ 1MHz internal R/C
+- avr-gcc 4.3.3/avr-libc 1.6.7 (WinAVR 3/2010)
+- Atmel ATmega324P @ 8MHz internal RC, ATtiny85 @ 1MHz internal RC
 - 2400bps
+*/
+
+/*
+AVR Memory Usage (-Os, no-inline small-functions, relax)
+----------------
+Device: atmega324p
+
+Program:     926 bytes (2.8% Full)
+(.text + .data + .bootloader)
+
+Data:         52 bytes (2.5% Full)
+(.data + .bss + .noinit)
+
 
 AVR Memory Usage (-Os)
 ----------------
 Device: attiny85
 
-Program:     874 bytes (10.7% Full)
+Program:     828 bytes (10.1% Full)
 (.text + .data + .bootloader)
 
 Data:         52 bytes (10.2% Full)
@@ -25,17 +38,17 @@ Data:         52 bytes (10.2% Full)
 
 */
 
-// #define WITH_STDIO_DEMO
+#define WITH_STDIO_DEMO   0 /* 1: enable, 0: disable */
 
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
 #include "softuart.h"
 
 
-#ifdef WITH_STDIO_DEMO
+#if WITH_STDIO_DEMO
 #include <stdio.h>
 
-// interface between avr-libc stdio and the modified Fleury uart-lib:
+// interface between avr-libc stdio and software-UART
 static int my_stdio_putchar( char c, FILE *stream )
 {
 	if ( c == '\n' ) {
@@ -73,13 +86,13 @@ int main(void)
 	softuart_turn_rx_on(); /* redundant - on by default */
 	
 	sei();
-	
+
 	softuart_puts_P( "\r\nSoftuart Demo-Application\r\n" );    // "implicit" PSTR
 	softuart_puts_p( PSTR("generic softuart driver code by Colin Gittins\r\n") ); // explicit PSTR
 	softuart_puts_p( pstring ); // pstring defined with PROGMEM
 	softuart_puts( "--\r\n" );  // string "from RAM"
 
-#ifdef WITH_STDIO_DEMO
+#if WITH_STDIO_DEMO
 	stdio_demo_func();
 #endif
 	
