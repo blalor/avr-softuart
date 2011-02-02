@@ -45,6 +45,7 @@
 
 #elif    defined (__AVR_ATmega324P__) || defined (__AVR_ATmega324A__)  \
       || defined (__AVR_ATmega644P__) || defined (__AVR_ATmega644PA__) \
+      || defined (__AVR_ATmega328P__) || defined (__AVR_ATmega328PA__) \
       || defined (__AVR_ATmega164P__) || defined (__AVR_ATmega164A__)
 
 #define SOFTUART_RXPIN   PIND
