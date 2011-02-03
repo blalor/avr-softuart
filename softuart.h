@@ -1,3 +1,7 @@
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #if !defined(F_CPU)
     #warning "F_CPU not defined in makefile - now defined in softuart.h"
     #define F_CPU 3686400UL
@@ -98,6 +102,12 @@ void softuart_flush_input_buffer( void );
 // Tests whether an input character has been received.
 unsigned char softuart_kbhit( void );
 
+// Returns the number of bytes available
+unsigned char softuart_available( void );
+
+// Peeks a character from the input buffer, waiting if necessary.
+char softuart_peek( void );
+
 // Reads a character from the input buffer, waiting if necessary.
 char softuart_getchar( void );
 
@@ -123,3 +133,7 @@ void softuart_puts_p( const char *prg_s );
 // Helper-Macro - "automatically" inserts PSTR
 // when used: include avr/pgmspace.h before this include-file
 #define softuart_puts_P(s___) softuart_puts_p(PSTR(s___))
+
+#ifdef __cplusplus
+}
+#endif

@@ -298,6 +298,15 @@ void softuart_turn_rx_off( void )
 	flag_rx_off = SU_TRUE;
 }
 
+char softuart_peek( void )
+{
+	while ( qout == qin ) {
+		idle();
+	}
+	
+	return inbuf[qout];
+}
+
 char softuart_getchar( void )
 {
 	char ch;
@@ -311,6 +320,20 @@ char softuart_getchar( void )
 	}
 	
 	return( ch );
+}
+
+unsigned char softuart_available( void ) 
+{
+    unsigned char avail;
+    
+    // @todo this isn't correct
+    if (qin > qout) {
+        avail = qin - qout;
+    } else {
+        avail = qout - qin;
+    }
+    
+    return avail;
 }
 
 unsigned char softuart_kbhit( void )
