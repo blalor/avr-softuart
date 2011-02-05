@@ -137,6 +137,7 @@ V0.4 (10/2010)
   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
   POSSIBILITY OF SUCH DAMAGE. */
 
+// #define OSCOPE_TOGGLE
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -178,9 +179,6 @@ ISR(SOFTUART_T_COMP_LABEL)
     unsigned char start_bit, flag_in;
     unsigned char tmp;
     
-    // oscope toggle
-    // PORTB ^= _BV(PORTB4);
-    
     // Transmitter Section
     if ( flag_tx_busy == SU_TRUE ) {
         tmp = timer_tx_ctr;
@@ -215,23 +213,19 @@ ISR(SOFTUART_T_COMP_LABEL)
         }
         else {  // rx_test_busy
             if ( flag_rx_ready == SU_FALSE ) {
-                // oscope toggle
-                // PORTB ^= _BV(PORTB4);
-                
                 start_bit = get_rx_pin_status();
                 // test for start bit
                 if ( start_bit == 0 ) {
-                    // oscope toggle
-                    // PORTB |= _BV(PORTB4);
+                    #ifdef OSCOPE_TOGGLE
+                        // oscope toggle; drive low
+                        PORTC &= ~_BV(PORTC1);
+                    #endif
                     
                     flag_rx_ready      = SU_TRUE;
                     internal_rx_buffer = 0;
                     timer_rx_ctr       = 4;
                     bits_left_in_rx    = RX_NUM_OF_BITS;
                     rx_mask            = 1;
-                    
-                    // oscope toggle
-                    // PORTB &= ~_BV(PORTB4);
                 }
             }
             else {  // rx_busy
@@ -240,8 +234,10 @@ ISR(SOFTUART_T_COMP_LABEL)
                     // rcv
                     tmp = 3;
                     
-                    // oscope toggle
-                    // PORTB |= _BV(PORTB4);
+                    #ifdef OSCOPE_TOGGLE
+                        // oscope toggle
+                        PORTC |= _BV(PORTC1);
+                    #endif                    
                     
                     flag_in = get_rx_pin_status();
                     if ( flag_in ) {
@@ -252,9 +248,12 @@ ISR(SOFTUART_T_COMP_LABEL)
                         flag_rx_waiting_for_stop_bit = SU_TRUE;
                     }
                     
-                    // oscope toggle
-                    // PORTB &= ~_BV(PORTB4);
-                    
+                    #ifdef OSCOPE_TOGGLE
+                        if (flag_rx_waiting_for_stop_bit == SU_FALSE) {
+                            // oscope toggle
+                            PORTC &= ~_BV(PORTC1);
+                        }
+                    #endif
                 }
                 timer_rx_ctr = tmp;
             }
@@ -269,8 +268,16 @@ static void io_init(void)
     // RX-Pin as input
     SOFTUART_RXDDR &= ~( 1 << SOFTUART_RXBIT );
     
-    // oscope toggle
-    // DDRB |= _BV(PORTB4);
+    #ifdef OSCOPE_TOGGLE
+        // when enabled, the oscope toggle line:
+        // • is initially high
+        // • goes to 0 when the start bit is detected
+        // • goes high and then low when a data bit is read
+        // • goes high when a stop bit is detected
+        
+        DDRC |= _BV(PORTC1);
+        PORTB |= _BV(PORTC1);
+    #endif
 }
 
 static void timer_init(void)
