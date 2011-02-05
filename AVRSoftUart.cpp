@@ -1,8 +1,19 @@
 #include "AVRSoftUart.h"
 #include "softuart.h"
 
+void AVRSoftUart::init() {
+    softuart_init();
+    softuart_turn_rx_on(); /* redundant - on by default */
+}
+
 int AVRSoftUart::read() {
-    return softuart_getchar();
+    int rc = -1;
+    
+    if (softuart_kbhit()) {
+        rc = (int) softuart_getchar();
+    }
+    
+    return rc;
 }
 
 void AVRSoftUart::write(const uint8_t ch) {

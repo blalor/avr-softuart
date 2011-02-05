@@ -5,6 +5,8 @@
 
 class AVRSoftUart : public Stream {
 public:
+    void init();
+    
     void flush();
     int peek();
     unsigned int available();
