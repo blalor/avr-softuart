@@ -178,6 +178,9 @@ ISR(SOFTUART_T_COMP_LABEL)
     unsigned char start_bit, flag_in;
     unsigned char tmp;
     
+    // oscope toggle
+    // PORTB ^= _BV(PORTB4);
+    
     // Transmitter Section
     if ( flag_tx_busy == SU_TRUE ) {
         tmp = timer_tx_ctr;
@@ -212,14 +215,23 @@ ISR(SOFTUART_T_COMP_LABEL)
         }
         else {  // rx_test_busy
             if ( flag_rx_ready == SU_FALSE ) {
+                // oscope toggle
+                // PORTB ^= _BV(PORTB4);
+                
                 start_bit = get_rx_pin_status();
                 // test for start bit
                 if ( start_bit == 0 ) {
+                    // oscope toggle
+                    // PORTB |= _BV(PORTB4);
+                    
                     flag_rx_ready      = SU_TRUE;
                     internal_rx_buffer = 0;
                     timer_rx_ctr       = 4;
                     bits_left_in_rx    = RX_NUM_OF_BITS;
                     rx_mask            = 1;
+                    
+                    // oscope toggle
+                    // PORTB &= ~_BV(PORTB4);
                 }
             }
             else {  // rx_busy
@@ -227,6 +239,10 @@ ISR(SOFTUART_T_COMP_LABEL)
                 if ( --tmp == 0 ) { // if ( --timer_rx_ctr == 0 ) {
                     // rcv
                     tmp = 3;
+                    
+                    // oscope toggle
+                    // PORTB |= _BV(PORTB4);
+                    
                     flag_in = get_rx_pin_status();
                     if ( flag_in ) {
                         internal_rx_buffer |= rx_mask;
@@ -235,6 +251,10 @@ ISR(SOFTUART_T_COMP_LABEL)
                     if ( --bits_left_in_rx == 0 ) {
                         flag_rx_waiting_for_stop_bit = SU_TRUE;
                     }
+                    
+                    // oscope toggle
+                    // PORTB &= ~_BV(PORTB4);
+                    
                 }
                 timer_rx_ctr = tmp;
             }
