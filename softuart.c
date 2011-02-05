@@ -268,6 +268,9 @@ static void io_init(void)
     SOFTUART_TXDDR |=  ( 1 << SOFTUART_TXBIT );
     // RX-Pin as input
     SOFTUART_RXDDR &= ~( 1 << SOFTUART_RXBIT );
+    
+    // oscope toggle
+    // DDRB |= _BV(PORTB4);
 }
 
 static void timer_init(void)
