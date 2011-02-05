@@ -20,6 +20,9 @@ extern "C" {
     #define SOFTUART_TXDDR   DDRB
     #define SOFTUART_TXBIT   PB1
 
+    // timer0 is an 8-bit timer
+    #define SOFTUART_TIMERMAX 0xff
+    
     #define SOFTUART_T_COMP_LABEL      TIM0_COMPA_vect
     #define SOFTUART_T_COMP_REG        OCR0A
     #define SOFTUART_T_CONTR_REGA      TCCR0A
@@ -58,38 +61,59 @@ extern "C" {
     #define SOFTUART_TXPORT  PORTD
     #define SOFTUART_TXDDR   DDRD
     #define SOFTUART_TXBIT   PORTD7
-
-    #define SOFTUART_T_COMP_LABEL      TIMER0_COMPA_vect
-    #define SOFTUART_T_COMP_REG        OCR0A
-    #define SOFTUART_T_CONTR_REGA      TCCR0A
-    #define SOFTUART_T_CONTR_REGB      TCCR0B
-    #define SOFTUART_T_CNT_REG         TCNT0
-    #define SOFTUART_T_INTCTL_REG      TIMSK0
-    #define SOFTUART_CMPINT_EN_MASK    (1 << OCIE0A)
-    #define SOFTUART_CTC_MASKA         (1 << WGM01)
-    #define SOFTUART_CTC_MASKB         (0)
-
+    
+    // timer1 is a 16-bit timer
+    #define SOFTUART_TIMERMAX 0xffff
+    
+    #define SOFTUART_T_COMP_LABEL      TIMER1_COMPA_vect
+    #define SOFTUART_T_COMP_REG        OCR1A
+    #define SOFTUART_T_CNT_REG         TCNT1
+    
     /* "A timer interrupt must be set to interrupt at three times 
        the required baud rate." */
-    #define SOFTUART_PRESCALE (8)
-    // #define SOFTUART_PRESCALE (1)
+    // #define SOFTUART_PRESCALE (8)
+    #define SOFTUART_PRESCALE (1)
 
+    // TCCR1A: COM1A1 COM1A0 COM1B1 COM1B0      -      -  WGM11  WGM10
+    // TCCR1B:  ICNC1  ICES1      –  WGM13  WGM12   CS12   CS11   CS10
+    
+    // CTC:     WGM 0 1 0 0 
+    // CLKio/8:  CS   0 1 0
+    // CLKio/1:  CS   0 0 1
+    
+    #define SOFTUART_T_CONTR_REGA      TCCR1A
+    #define SOFTUART_CTC_MASKA         (0)
+    
     #if (SOFTUART_PRESCALE == 8)
-        #define SOFTUART_PRESC_MASKA         (0)
-        #define SOFTUART_PRESC_MASKB         (1 << CS01)
+        #define SOFTUART_PRESC_MASKA   (0)
     #elif (SOFTUART_PRESCALE==1)
-        #define SOFTUART_PRESC_MASKA         (0)
-        #define SOFTUART_PRESC_MASKB         (1 << CS00)
+        #define SOFTUART_PRESC_MASKA   (0)
     #else 
         #error "prescale unsupported"
     #endif
+
+    #define SOFTUART_T_CONTR_REGB      TCCR1B
+    #define SOFTUART_CTC_MASKB         ( _BV(WGM12) )
+    
+    #if (SOFTUART_PRESCALE == 8)
+        #define SOFTUART_PRESC_MASKB   ( _BV(CS11) )
+    #elif (SOFTUART_PRESCALE==1)
+        #define SOFTUART_PRESC_MASKB   ( _BV(CS10) )
+    #else 
+        #error "prescale unsupported"
+    #endif
+    
+    #define SOFTUART_T_INTCTL_REG      TIMSK1
+    #define SOFTUART_CMPINT_EN_MASK    ( _BV(OCIE1A) )
+    
+
 #else
     #error "no defintions available for this AVR"
 #endif
 
 #define SOFTUART_TIMERTOP ( F_CPU/SOFTUART_PRESCALE/SOFTUART_BAUD_RATE/3 - 1)
 
-#if (SOFTUART_TIMERTOP > 0xff)
+#if (SOFTUART_TIMERTOP > SOFTUART_TIMERMAX)
     #warning "Check SOFTUART_TIMERTOP: increase prescaler, lower F_CPU or use a 16 bit timer"
 #endif
 

@@ -277,11 +277,19 @@ static void timer_init(void)
     sreg_tmp = SREG;
     cli();
     
-    SOFTUART_T_COMP_REG = SOFTUART_TIMERTOP;     /* set top */
-
+    // not sure if this is documented in the datasheet, but the compare 
+    // register must be set *after* the timer control registers. Otherwise,
+    // any previous configuration made to the control register seems to
+    // persist.
+    // the arduino calls
+    //    sbi(TCCR1A, WGM10);
+    // in init() (wiring.c).  Unless SOFTUART_T_CONTR_REGA and …B are set 
+    // before SOFTUART_T_COMP_REG, timer1 runs much faster.
     SOFTUART_T_CONTR_REGA = SOFTUART_CTC_MASKA | SOFTUART_PRESC_MASKA;
     SOFTUART_T_CONTR_REGB = SOFTUART_CTC_MASKB | SOFTUART_PRESC_MASKB;
 
+    SOFTUART_T_COMP_REG = SOFTUART_TIMERTOP;     /* set top */
+    
     SOFTUART_T_INTCTL_REG |= SOFTUART_CMPINT_EN_MASK;
 
     SOFTUART_T_CNT_REG = 0; /* reset counter */
